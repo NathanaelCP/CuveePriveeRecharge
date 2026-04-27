@@ -1,0 +1,12 @@
+node_modules
+
+# macOS
+.DS_Store
+
+# env files
+.env
+.env.*
+
+# Ignore shopify files created during app dev
+.shopify/*
+.shopify.lock
