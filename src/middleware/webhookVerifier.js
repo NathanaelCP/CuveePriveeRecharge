@@ -20,7 +20,7 @@ function verifyShopifyWebhook(req, res, next) {
     }
 
     const digest = crypto
-        .createHmac("sha256", config.shopify.webhookSecret)
+        .createHmac("sha256", config.shopify.apiClientSecret)
         .update(rawBody, "utf8")
         .digest("base64");
 
