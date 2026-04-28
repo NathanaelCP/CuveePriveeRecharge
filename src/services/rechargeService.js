@@ -5,7 +5,7 @@ const rechargeClient = axios.create({
     baseURL: config.recharge.baseUrl,
     headers: {
         "X-Recharge-Access-Token": config.recharge.apiKey,
-        "X-Recharge-Version": config.recharge.apiVersion,
+        "X-Recharge-Version": "2021-11",
         "Content-Type": "application/json",
     },
 });
@@ -48,17 +48,11 @@ async function createCustomer(customerData) {
         email: customerData.email,
         first_name: customerData.firstName,
         last_name: customerData.lastName,
-        billing_address1: customerData.address1,
-        billing_address2: customerData.address2 || "",
-        billing_city: customerData.city,
-        billing_province: customerData.province,
-        billing_zip: customerData.zip,
-        billing_country: customerData.country,
-        billing_phone: customerData.phone || "",
-        shopify_customer_id: String(customerData.shopifyCustomerId),
+        tax_exempt: false
     };
 
-    const {data} = await rechargeClient.post("/customers", {customer: payload});
+    const {data} = await rechargeClient.post("/customers", payload);
+
     console.log(`✅ Recharge customer created: ${data.customer.id}`);
     return data.customer;
 }
@@ -103,7 +97,12 @@ async function findOrCreateAddress(rechargeCustomerId, shopifyOrder) {
 
     // Fetch existing addresses
     const {data} = await rechargeClient.get(
-        `/customers/${rechargeCustomerId}/addresses`
+        `/addresses`,
+        {
+            params: {
+                customer_id: rechargeCustomerId
+            }
+        }
     );
     const addresses = data.addresses || [];
 
@@ -120,6 +119,7 @@ async function findOrCreateAddress(rechargeCustomerId, shopifyOrder) {
 
     // Create new address
     const payload = {
+        customer_id: rechargeCustomerId,
         address1: shipping.address1 || "",
         address2: shipping.address2 || "",
         city: shipping.city || "",
@@ -133,8 +133,8 @@ async function findOrCreateAddress(rechargeCustomerId, shopifyOrder) {
     };
 
     const {data: newData} = await rechargeClient.post(
-        `/customers/${rechargeCustomerId}/addresses`,
-        {address: payload}
+        `/addresses`,
+        payload
     );
     console.log(`✅ Recharge address created: ${newData.address.id}`);
     return newData.address;
@@ -157,20 +157,23 @@ async function createSubscription({
                                   }) {
     const payload = {
         address_id: addressId,
-        shopify_variant_id: shopifyVariantId,
-        shopify_product_id: shopifyProductId,
+        external_variant_id: {
+            ecommerce: shopifyVariantId
+        },
+        external_product_id: {
+            ecommerce: shopifyProductId
+        },
         quantity,
         price,
-        title,
+        product_title: title,
         order_interval_unit: intervalUnit,
         order_interval_frequency: intervalFrequency,
         charge_interval_frequency: intervalFrequency,
-        // next_charge_scheduled_at: set automatically by Recharge
+        next_charge_scheduled_at: "2026-04-28"
     };
+    console.log(payload);
 
-    const {data} = await rechargeClient.post("/subscriptions", {
-        subscription: payload,
-    });
+    const {data} = await rechargeClient.post("/subscriptions", payload);
 
     console.log(
         `✅ Recharge subscription created: ${data.subscription.id} for variant ${shopifyVariantId}`
