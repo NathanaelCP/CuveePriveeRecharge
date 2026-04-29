@@ -160,9 +160,6 @@ async function createSubscription({
         external_variant_id: {
             ecommerce: shopifyVariantId
         },
-        external_product_id: {
-            ecommerce: shopifyProductId
-        },
         quantity,
         price,
         product_title: title,
