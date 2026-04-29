@@ -5,7 +5,7 @@ const rechargeClient = axios.create({
     baseURL: config.recharge.baseUrl,
     headers: {
         "X-Recharge-Access-Token": config.recharge.apiKey,
-        "X-Recharge-Version": "2021-11",
+        //"X-Recharge-Version": "2021-11",
         "Content-Type": "application/json",
     },
 });
@@ -124,7 +124,7 @@ async function findOrCreateAddress(rechargeCustomerId, shopifyOrder) {
         address2: shipping.address2 || "",
         city: shipping.city || "",
         company: shipping.company || "",
-        country_code: shipping.country_code || shipping.country || "",
+        country: shipping.country_code || shipping.country || "",
         first_name: shipping.first_name || "",
         last_name: shipping.last_name || "",
         phone: shipping.phone || "",
