@@ -104,8 +104,8 @@ async function processOrderPaid(order) {
         try {
             const subscription = await rechargeService.createSubscription({
                 addressId: rechargeAddress.id,
-                shopifyVariantId: item.variant_id,
-                shopifyProductId: item.product_id,
+                shopifyVariantId: item.variant_id.toString(),
+                shopifyProductId: item.product_id.toString(),
                 quantity: item.quantity,
                 price: item.price,
                 title: item.title,

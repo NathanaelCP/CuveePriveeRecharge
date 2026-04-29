@@ -169,7 +169,7 @@ async function createSubscription({
         order_interval_unit: intervalUnit,
         order_interval_frequency: intervalFrequency,
         charge_interval_frequency: intervalFrequency,
-        next_charge_scheduled_at: "2026-04-28"
+        next_charge_scheduled_at: new Date().toISOString().split('T')[0]
     };
     console.log(payload);
     const {data} = await rechargeClient.post("/subscriptions", payload);
