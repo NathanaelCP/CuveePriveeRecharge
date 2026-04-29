@@ -171,8 +171,12 @@ async function createSubscription({
         charge_interval_frequency: intervalFrequency,
         next_charge_scheduled_at: new Date().toISOString().split('T')[0]
     };
-    console.log(payload);
-    const {data} = await rechargeClient.post("/subscriptions", payload);
+
+    const {data} = await rechargeClient.post("/subscriptions", payload, {
+        headers: {
+            "X-Recharge-Version": "2021-11",
+        }
+    });
 
     console.log(
         `✅ Recharge subscription created: ${data.subscription.id} for variant ${shopifyVariantId}`
