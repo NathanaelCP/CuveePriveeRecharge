@@ -76,6 +76,10 @@ async function processOrderPaid(order) {
         throw new Error("Order has no email — cannot create Recharge customer");
     }
 
+    if(order.tags.includes("Subscription") || order.tags.includes("Subscription Recurring Order")) {
+        return {skipped: true, reason: "subscription orders are not eligible"};
+    }
+
     // 2. Identify subscribable line items
     const lineItems = getSubscribableLineItems(order.line_items || []);
 
@@ -100,18 +104,43 @@ async function processOrderPaid(order) {
 
     for (const item of lineItems) {
         const {intervalUnit, intervalFrequency} = getIntervalFromLineItem(item);
+        const prepaid = true;
 
         try {
-            const subscription = await rechargeService.createSubscription({
+
+            const payload = {
                 addressId: rechargeAddress.id,
-                shopifyVariantId: item.variant_id.toString(),
-                shopifyProductId: item.product_id.toString(),
+                shopifyVariantId: item.variant_id?.toString(),
+                shopifyProductId: item.product_id?.toString(),
                 quantity: item.quantity,
                 price: item.price,
                 title: item.title,
                 intervalUnit,
                 intervalFrequency,
-            });
+            }
+
+            if(prepaid) {
+
+                // Add credit to customer if prepaid
+                await rechargeService.addCustomerCredit(
+                    rechargeCustomer.id,
+                    item
+                );
+
+                const prepaidDurationMonths = item.durationMonth;
+                if(prepaidDurationMonths > 0) {
+                    payload.charge_interval_frequency = prepaidDurationMonths;
+                }
+                else {
+                    payload.charge_interval_frequency = 12;
+                }
+                payload.expire_after_specific_number_of_charges = 1;
+            }
+            else {
+                payload.charge_interval_frequency = 3;
+            }
+
+            const subscription = await rechargeService.createSubscription(payload);
 
             results.push({
                 lineItemId: item.id,

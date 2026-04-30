@@ -140,6 +140,31 @@ async function findOrCreateAddress(rechargeCustomerId, shopifyOrder) {
     return newData.address;
 }
 
+
+// ─── Add credit to customer ─────────────────────────────────────────────────────────────
+
+/**
+ * Create a credit account for a given line item.
+ */
+async function addCustomerCredit(rechargeCustomerId, shopifyLineItem) {
+    const payload = {
+        customer_id: rechargeCustomerId,
+        name: "Credit for prepaid subscription",
+        initial_value: shopifyLineItem.price,
+        type: "manual",
+    };
+
+    await rechargeClient.post("/credit_accounts", payload, {
+        headers: {
+            "X-Recharge-Version": "2021-11",
+        }
+    });
+
+    console.log(
+        `✅ Recharge credit account created: ${shopifyLineItem.price} for customer ${rechargeCustomerId}`
+    );
+}
+
 // ─── Subscription ─────────────────────────────────────────────────────────────
 
 /**
@@ -187,5 +212,6 @@ async function createSubscription({
 module.exports = {
     findOrCreateCustomer,
     findOrCreateAddress,
+    addCustomerCredit,
     createSubscription,
 };
